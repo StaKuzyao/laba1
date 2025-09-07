@@ -88,6 +88,9 @@ public class Complex {
      */
     public Complex dividedBy(Complex b) {
         double denominator = b.re * b.re + b.im * b.im;
+        if (Math.abs(denominator) < 1e-15) {
+            throw new ArithmeticException("Division by zero");
+        }
         double real = (re * b.re + im * b.im) / denominator;
         double imag = (im * b.re - re * b.im) / denominator;
         re = real;
@@ -173,6 +176,9 @@ public class Complex {
      * @return this Complex object whose value is ln(z)
      */
     public Complex ln() {
+        if (Math.abs(re) < 1e-15 && Math.abs(im) < 1e-15) {
+            throw new ArithmeticException("Logarithm of zero");
+        }
         double magnitude = Math.log(Math.sqrt(re * re + im * im));
         double angle = Math.atan2(im, re);
         re = magnitude;
@@ -195,6 +201,9 @@ public class Complex {
      */
     public Complex reciprocal() {
         double denominator = re * re + im * im;
+        if (Math.abs(denominator) < 1e-15) {
+            throw new ArithmeticException("Division by zero");
+        }
         double real = re / denominator;
         double imag = -im / denominator;
         re = real;
@@ -297,7 +306,18 @@ public class Complex {
      * @return this Complex object whose value is z² * c + z
      */
     public Complex combinedFractal1(Complex c) {
-        return this.square().times(c).plus(this);
+        // Сохраняем оригинальное значение z
+        double originalRe = this.re;
+        double originalIm = this.im;
+
+        // Вычисляем z² * c
+        this.square().times(c);
+
+        // Прибавляем оригинальное z
+        this.re += originalRe;
+        this.im += originalIm;
+
+        return this;
     }
 
     /**
@@ -306,8 +326,17 @@ public class Complex {
      * @return this Complex object whose value is sin(z²) + cos(z) * c
      */
     public Complex combinedFractal2(Complex c) {
-        Complex temp = new Complex(re, im);
-        return temp.square().sin().plus(this.cos().times(c));
+        // Сохраняем оригинальное значение z
+        Complex original = this.copy();
+
+        // Вычисляем sin(z²)
+        this.square().sin();
+
+        // Вычисляем cos(original) * c
+        Complex cosPart = original.copy().cos().times(c);
+
+        // Складываем результаты
+        return this.plus(cosPart);
     }
 
     /**
@@ -329,6 +358,10 @@ public class Complex {
 
     @Override
     public String toString() {
-        return re + " + " + im + "i";
+        if (im >= 0) {
+            return re + " + " + im + "i";
+        } else {
+            return re + " - " + (-im) + "i";
+        }
     }
 }
